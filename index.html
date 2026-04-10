@@ -269,8 +269,8 @@
 </div>
 
 <script>
-    // --- CONNECTED GOOGLE APPS SCRIPT WEB APP URL ---
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_5Or3g-PKBO_cEmNr9SuajC6PyY0f7Fpqbp_jqOFPxocbY47jPdRozMMsG1A563N4sQ/exec'; 
+    // --- CONNECTED GOOGLE APPS SCRIPT WEB APP URL (UPDATED) ---
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxN8Yh_sOmaMU1cyJxgznWI-w3qRqjn3WGLPTE7KaxM_f-A2CDs2NX8YzYd7E1L9qQIJA/exec'; 
     
     let selectedAvatar = '';
     let currentUser = null;
@@ -296,7 +296,7 @@
         document.getElementById('loader').style.display = show ? 'flex' : 'none';
     }
 
-    // Register Function (Updated for CORS Fix)
+    // Register Function (Switched to GET to bypass CORS)
     async function registerUser() {
         const nick = document.getElementById('reg-nickname').value;
         const group = document.getElementById('reg-group').value;
@@ -308,20 +308,21 @@
 
         toggleLoader(true);
         try {
-            const formData = new URLSearchParams();
-            formData.append('action', 'register');
-            formData.append('nickname', nick);
-            formData.append('groupName', group);
-            formData.append('password', pass);
-            formData.append('avatar', selectedAvatar);
+            const queryParams = new URLSearchParams({
+                action: 'register',
+                nickname: nick,
+                groupName: group,
+                password: pass,
+                avatar: selectedAvatar
+            });
 
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: formData
+            const response = await fetch(`${SCRIPT_URL}?${queryParams.toString()}`, {
+                method: 'GET'
             });
             const result = await response.json();
+            
             alert(result.message);
-            showView('login-view');
+            if(result.status === 'success') showView('login-view');
         } catch(e) {
             console.error(e);
             alert("Connection error! The signal was jammed. (Check console for details)");
@@ -329,7 +330,7 @@
         toggleLoader(false);
     }
 
-    // Login Function (Updated for CORS Fix)
+    // Login Function (Switched to GET to bypass CORS)
     async function loginUser() {
         const nick = document.getElementById('log-nickname').value;
         const group = document.getElementById('log-group').value;
@@ -339,15 +340,15 @@
 
         toggleLoader(true);
         try {
-            const formData = new URLSearchParams();
-            formData.append('action', 'login');
-            formData.append('nickname', nick);
-            formData.append('groupName', group);
-            formData.append('password', pass);
+            const queryParams = new URLSearchParams({
+                action: 'login',
+                nickname: nick,
+                groupName: group,
+                password: pass
+            });
 
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: formData
+            const response = await fetch(`${SCRIPT_URL}?${queryParams.toString()}`, {
+                method: 'GET'
             });
             const result = await response.json();
             
@@ -391,7 +392,8 @@
     // Fetch Leaderboard
     async function fetchLeaderboard() {
         try {
-            const response = await fetch(SCRIPT_URL + '?action=getLeaderboard');
+            const queryParams = new URLSearchParams({ action: 'getLeaderboard' });
+            const response = await fetch(`${SCRIPT_URL}?${queryParams.toString()}`, { method: 'GET' });
             const result = await response.json();
             if(result.status === 'success') {
                 const table = document.getElementById('leaderboard-body');
